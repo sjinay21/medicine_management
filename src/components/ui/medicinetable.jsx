@@ -4,61 +4,57 @@ import { useState ,useEffect} from "react";
 import Link from "next/link";
 import Buttonvariants from "@/components/ui/button";
 import Input from "@/components/ui/input";
+import Loading from "@/components/ui/loading";
 import Pagination from "@/components/ui/pagination";
-
-export default function MedicineTable({
-  medicines,
-  editMedicineId,
-  editname,
-  setEditName,editgram,setEditGram,deletemedicines,updateItem,editlist,savesymptoms,
-}) {
+export default function MedicineTable({medicines,editMedicineId,setEditForm,editform,deletemedicines,updateItem,editlist,savesymptoms}) {
   const [currentPage, setCurrentPage] = useState(1);
-  const dataShown = 3;
+const [dataShown, setDataShown] = useState(5);
+
 useEffect(() => {
   setCurrentPage(1);
 }, [medicines]);
  function getDisplayedMedicines(medicines, currentPage, dataShown) {
     const start = (currentPage - 1) * dataShown;
     const end = currentPage * dataShown;
-  
     return medicines.slice(start, end);
   }
   const displayedMedicines = getDisplayedMedicines(medicines,currentPage,dataShown);
   function handleChangePage(event,newPage) {
     setCurrentPage(newPage + 1);
   }
+  function handleChangeRowsPerPage(event) {
+  setDataShown(parseInt(event.target.value, 10));
+  setCurrentPage(1);
+}
   const symptomsList = ["fever","cough","wheezing","headache","cold",];
   return (
     <>
-      <table className="w-full border">
+    {medicines.length == 0 ? (
+  <Loading />
+) :
+      (<table className="w-full border">
         <thead>
           <tr className="text-blue-950 text-xl">
             <th className="text-left p-4 border">
               Sr.No
             </th>
-
             <th className="text-left p-2 border">
               Name
             </th>
-
             <th className="text-left p-2 border">
               Gram
             </th>
-
             <th className="text-left p-4 border">
               Code
             </th>
-
             <th className="text-left p-2 border">
               Symptoms
             </th>
-
             <th className="text-left p-4 border">
               Action
             </th>
           </tr>
         </thead>
-
         <tbody>
           {displayedMedicines.map((medicine, index) => (
             <tr key={medicine.id}>
@@ -71,8 +67,8 @@ useEffect(() => {
                   <Input
                     type="text"
                     placeholder="Edit name"
-                    value={editname}
-                    onChange={(event) =>setEditName(event.target.value)}
+                    value={editform.editname}
+                    onChange={(event) =>setEditForm({...editform,editname: event.target.value})}
                     variant="primary"
                   />
                 ) : (
@@ -87,8 +83,8 @@ useEffect(() => {
                   <Input
                     type="number"
                     placeholder="Edit gram"
-                    value={editgram}
-                    onChange={(event) =>setEditGram(event.target.value)}
+                    value={editform.editgram}
+                    onChange={(event) =>setEditForm({...editform,editgram: event.target.value})}
                     variant="primary"
                   />
                 ) : (
@@ -101,19 +97,32 @@ useEffect(() => {
               </td>
 
              <td className="border p-4">
-  <div className="flex flex-wrap items-center justify-center gap-6">
+          <div className="flex flex-wrap items-center justify-center gap-6">
     {symptomsList.map((symptom) => (
-      <div key={symptom} className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          checked={medicine.symptoms.includes(symptom)}
-          disabled={editMedicineId != medicine.id}
-          onChange={(event) =>savesymptoms(medicine,symptom,event.target.checked)}
-          className="h-4 w-4 accent-blue-900"
-        />
-        <label>{symptom}</label>
-      </div>
-    ))}
+  <div key={symptom} className="flex items-center gap-2">
+
+    <label className="flex items-center gap-2">
+
+      <input
+        type="checkbox"
+        checked={medicine.symptoms.includes(symptom)}
+        disabled={editMedicineId != medicine.id}
+        onChange={(event) =>
+          savesymptoms(
+            medicine,
+            symptom,
+            event.target.checked
+          )
+        }
+        className="h-4 w-4 accent-blue-900"
+      />
+
+      {symptom}
+
+    </label>
+
+  </div>
+))}
   </div>
 </td>
               <td className="border p-4">
@@ -123,7 +132,7 @@ useEffect(() => {
                       onClick={updateItem}
                       variant="update"
                     >
-                      Save Change
+                      Save
                     </Buttonvariants>
                   ) : (
                     <Buttonvariants
@@ -146,14 +155,14 @@ useEffect(() => {
             </tr>
           ))}
         </tbody>
-      </table>
-
+      </table>)}
       <Pagination
-        count={medicines.length}
-        page={currentPage - 1}
-        rowsPerPage={dataShown}
-        onPageChange={handleChangePage}
-      />
+  count={medicines.length}
+  page={currentPage - 1}
+  rowsPerPage={dataShown}
+  onPageChange={handleChangePage}
+  onRowsPerPageChange={handleChangeRowsPerPage}
+/>
     </>
   );
 }

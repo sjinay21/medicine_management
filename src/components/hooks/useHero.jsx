@@ -11,18 +11,16 @@ export default function useHero() {
   const userMed = useSelector(
     (state) => state.medicine.medicines
   );
-
   useEffect(() => {
-    const saved = localStorage.getItem("Medicines");
-
-    if (saved) {
-      const savedMedicines = JSON.parse(saved);
-      dispatch(addMedicine(savedMedicines));
-    }
-  }, [dispatch]);
-
-  const data = [...hardmedicines, ...userMed];
-
+  const saved = localStorage.getItem("Medicines");
+  if (saved) {
+    dispatch(addMedicine(JSON.parse(saved)));
+  } else {
+    localStorage.setItem("Medicines",JSON.stringify(hardmedicines));
+    dispatch(addMedicine(hardmedicines));
+  }
+}, [dispatch]);
+  const data = userMed;
   return {
     data,
   };

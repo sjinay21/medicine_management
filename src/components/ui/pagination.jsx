@@ -6,6 +6,7 @@ export default function Pagination({
   page,
   rowsPerPage,
   onPageChange,
+  onRowsPerPageChange,
 }) {
   return (
     <TablePagination
@@ -13,8 +14,9 @@ export default function Pagination({
       count={count}
       page={page}
       rowsPerPage={rowsPerPage}
-      rowsPerPageOptions={[]}
+      rowsPerPageOptions={[5, 10, 25, 50]}
       onPageChange={onPageChange}
+      onRowsPerPageChange={onRowsPerPageChange}
     />
   );
 }

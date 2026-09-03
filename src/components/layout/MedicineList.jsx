@@ -7,17 +7,15 @@ import MedicineTable from "@/components/ui/medicinetable";
 
 export default function MedicineList() {
   const {
-    medicines,name,setName,
-    search,setSearch,filteredMedicines,
-    errors,
-    gram,setGram,
-    editname,setEditName,
-    editgram,setEditGram,
-    editMedicineId,deletemedicines,addmedicines,updateItem,editlist,savesymptoms,
+    medicines,form,setForm,
+    search,filteredMedicines,
+    errors,handleSearch,
+   editform,setEditForm,
+    editMedicineId,deletemedicines,addmedicines,updateItem,editlist,savesymptoms,searchInput
   } = useMedicines();
 
   const medicinesToShow =
-    search === "" ? medicines : filteredMedicines;
+    search == "" ? medicines : filteredMedicines;
 
   return (
     <div className="text-center px-6 py-8">
@@ -30,20 +28,20 @@ export default function MedicineList() {
 
       <div className="flex justify-center items-start gap-3 mb-8">
 
-        <Input
-          type="search"
-          placeholder="Search name"
-          variant="primary"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-        />
+       <Input
+  type="search"
+  placeholder="Search name"
+  variant="primary"
+  value={searchInput}
+  onChange={(event) => handleSearch(event.target.value)}
+/>
 
         <div className="w-60">
           <Input
             type="text"
             placeholder="Enter medicine name"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
+            value={form.name}
+            onChange={(event) => setForm({...form,name: event.target.value})}
             variant="primary"
           />
 
@@ -60,8 +58,8 @@ export default function MedicineList() {
           <Input
             type="number"
             placeholder="Enter gram"
-            value={gram}
-            onChange={(event) => setGram(event.target.value)}
+            value={form.gram}
+            onChange={(event) => setForm({...form,gram: event.target.value})}
             variant="primary"
           />
 
@@ -86,10 +84,8 @@ export default function MedicineList() {
       <MedicineTable
         medicines={medicinesToShow}
         editMedicineId={editMedicineId}
-        editname={editname}
-        setEditName={setEditName}
-        editgram={editgram}
-        setEditGram={setEditGram}
+        editform={editform}
+        setEditForm={setEditForm}
         deletemedicines={deletemedicines}
         updateItem={updateItem}
         editlist={editlist}

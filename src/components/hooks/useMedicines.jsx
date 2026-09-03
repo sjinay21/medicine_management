@@ -1,20 +1,21 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect ,useReducer } from "react";
 import { useDispatch } from "react-redux";
 import { addMedicine } from "@/redux/medicineslice";
 import hardmedicines from "@/data/hardmedicine";
 import { valueschema } from "@/schemas/medicineSchema";
+import { useRouter,useSearchParams } from "next/navigation";
 export default function useMedicines() {
   const [medicines, setMedicines] = useState([]);
-  const [name, setName] = useState("");
-  const [gram, setGram] = useState("");
+  const [form,setForm] = useState({name:"",gram:"",symptoms:""})
   const [editMedicineId, setEditMedicineId] = useState(null);
-  const [editname, setEditName] = useState("");
-  const [search, setSearch] = useState("");
-  const [editgram, setEditGram] = useState("");
-  const[symptoms ,setSymptoms ]=useState("");
+  const [editform,setEditForm]= useState({editname:"",editgram:""})
   const [errors, setErrors] = useState({});
   const dispatch = useDispatch();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const search = searchParams.get("search") || "";
+  const [searchInput, setSearchInput] = useState(search);
 useEffect(() => {
   const saved = localStorage.getItem("Medicines");
   if (saved) {
@@ -34,12 +35,36 @@ useEffect(() => {
 const filteredMedicines = medicines.filter((medicine) =>
   medicine.code.toUpperCase().includes(search.toUpperCase())
 );
+function debounce(fn, delay) {
+  let timer;
+
+  return function (...args) {
+    clearTimeout(timer);
+
+    timer = setTimeout(() => {
+      fn(...args);
+    }, delay);
+  };
+}
+ const debouncedSearch = debounce(updateSearch, 500);
+ function updateSearch(value) {
+  if (value == "") {
+    router.replace("/list");
+    return;
+  }
+  router.replace(`/list?search=${value}`);
+}
+function handleSearch(value) {
+  setSearchInput(value);
+  debouncedSearch(value);
+}
 
   function deletemedicines(id) {
     const updatedMedicines = medicines.filter((medicine) => medicine.id !== id);
     setMedicines(updatedMedicines);
     localStorage.setItem("Medicines", JSON.stringify(updatedMedicines));
     dispatch(addMedicine(updatedMedicines));
+    
   }
   async function addmedicines() {
   const valid = await validate();
@@ -48,9 +73,9 @@ const filteredMedicines = medicines.filter((medicine) =>
   }
     const newMedicine = {
       id: crypto.randomUUID(),
-      name: name,
-      gram: gram,
-      code: name.toUpperCase(),
+     name: form.name,
+  gram: form.gram,
+      code: form.name.toUpperCase().replace(/ /g, "_"),
       symptoms: [],
     };
 
@@ -58,31 +83,31 @@ const filteredMedicines = medicines.filter((medicine) =>
     setMedicines(updatedMedicines);
     localStorage.setItem("Medicines", JSON.stringify(updatedMedicines));
     dispatch(addMedicine(updatedMedicines));
-
-    setName("");
-    setGram("");
-    setSymptoms([]);
-
-  
-    setEditName("");
-    setEditGram("");
+    setForm({
+      name:"",
+      gram:"",
+      symptoms:"",
+    })
   }
   function editlist(medicine) {
     setEditMedicineId(medicine.id);
-    setEditName(medicine.name);
-    setEditGram(medicine.gram);
+    setEditForm({
+      editname:medicine.name,
+      editgram:medicine.gram,
+    })
+
+    
   }
   function updateItem() {
     const updatedMedicines = medicines.map((medicine) => {
       if (medicine.id == editMedicineId) {
         return {
           ...medicine,
-          name: editname,
-          gram: editgram,
-          code: editname.toUpperCase(),
+          name: editform.editname,
+          gram: editform.editgram,
+          code: editform.editname.toUpperCase().replace(/ /g, "_"),
         };
       }
-
       return medicine;
     });
 
@@ -92,8 +117,10 @@ const filteredMedicines = medicines.filter((medicine) =>
     dispatch(addMedicine(updatedMedicines));
 
     setEditMedicineId(null);
-    setEditName("");
-    setEditGram("");
+    setEditForm({
+      editname:"",
+      editgram:"",
+    })
   }
 function savesymptoms(medicine, symptom, checked) {
   const updatedMedicines = medicines.map((item) => {
@@ -124,7 +151,10 @@ function savesymptoms(medicine, symptom, checked) {
     localStorage.setItem("Medicines",JSON.stringify(medicines));
     dispatch(addMedicine(medicines));
   }  async function validate() {
-  const value = { name, gram };
+  const value = {
+    name: form.name,
+    gram: form.gram,
+  };;
   try {
   await valueschema.validate(value, {abortEarly: false});
   setErrors({});
@@ -139,13 +169,11 @@ function savesymptoms(medicine, symptom, checked) {
 }}
   return {
     medicines,setMedicines,validate,
-    name,setName,errors,
-    gram,setGram,
-    symptoms,setSymptoms,
- search,setSearch,filteredMedicines,
+    errors,
+    setForm,form,handleSearch,
+    search,filteredMedicines,
     editMedicineId,setEditMedicineId,
-    editname,setEditName,
-    editgram,setEditGram,
+    editform,setEditForm,searchInput,
     deletemedicines,addmedicines,savemedicines,updateItem,editlist,savesymptoms
   }
 }
